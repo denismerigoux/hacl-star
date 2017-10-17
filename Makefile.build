@@ -93,13 +93,15 @@ snapshots/hacl-c:
 # Code generation for NSS
 #
 
-NSS_FILES = \
-	$(addprefix snapshots/hacl-c/, Curve25519*) \
-	$(addprefix snapshots/kremlib/, kremlib.* testlib.* gcc_compat.h FStar.h Makefile)
-
 snapshots/nss: snapshots/hacl-c
 	mkdir -p snapshots/nss
-	cp $(NSS_FILES) snapshots/nss
+	cp snapshots/hacl-c/Curve25519.c snapshots/nss/hacl_curve25519_64.c
+	cp snapshots/hacl-c/Curve25519.h snapshots/nss/hacl_curve25519_64.h
+	cp snapshots/kremlib/FStar.h snapshots/nss/fstar_uint128.h
+	cp snapshots/kremlib/kremlib.h snapshots/nss
+	cp snapshots/kremlib/gcc_compat.h snapshots/nss
+	# Patch files adding license headers.
+	snapshots/patches/nss/patch.sh
 
 #
 # Code generation for all snapshots
