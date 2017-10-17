@@ -88,6 +88,19 @@ snapshots/hacl-c:
 	$(MAKE) snapshots/snapshot-gcc-unrolled
 	mkdir -p snapshots/hacl-c
 	cp $(HACL_C_FILES) snapshots/hacl-c
+
+#
+# Code generation for NSS
+#
+
+NSS_FILES = \
+	$(addprefix snapshots/hacl-c/, Curve25519*) \
+	$(addprefix snapshots/kremlib/, kremlib.* testlib.* gcc_compat.h FStar.h Makefile)
+
+snapshots/nss: snapshots/hacl-c
+	mkdir -p snapshots/nss
+	cp $(NSS_FILES) snapshots/nss
+
 #
 # Code generation for all snapshots
 #
@@ -98,9 +111,11 @@ snapshots-all:
 	$(MAKE) snapshots/snapshot-msvc
 	$(MAKE) snapshots/hacl-c-compcert
 	$(MAKE) snapshots/hacl-c
+	$(MAKE) snapshots/nss
 
 snapshots-remove:
 	rm -rf snapshots/hacl-c
+	rm -rf snapshots/nss
 	rm -rf snapshots/snapshot*
 
 snapshots-update:
