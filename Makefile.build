@@ -72,6 +72,10 @@ snapshots/snapshot-gcc-unrolled:
 	$(MAKE) -B extract-c-code extract-c-code-experimental KOPTS="-funroll-loops 5 -drop FStar"
 	$(MAKE) -B snapshot-collect SNAPSHOT_DIR=snapshots/snapshot-gcc-unrolled
 
+#
+# Code generation for HACL*/HACL-C
+#
+
 # BB: This requires to have up-to-date snapshot-gcc and snapshot-gcc-unrolled
 # Maybe we should call 'snapshot-remove' before to enforce it (at the cost of two more extractions) ?
 snapshots/hacl-c:
@@ -82,6 +86,10 @@ snapshots/hacl-c:
 	$(addprefix snapshots/snapshot-gcc-unrolled/, Curve25519* Ed25519*) \
 	$(addprefix snapshots/kremlib/, kremlib.* testlib.* gcc_compat.h FStar.h Makefile)  \
 		./snapshots/hacl-c
+
+#
+# Code generation for all snapshots
+#
 
 snapshots-all:
 	$(MAKE) snapshots/snapshot-gcc
