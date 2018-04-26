@@ -91,6 +91,10 @@ let init state =
 
 #reset-options "--max_fuel 0  --z3rlimit 50"
 
+noextract assume val classify_seq : Seq.seq FStar.UInt32.t -> Spec.SHA2_256.k_w
+noextract assume val declassify_seq : Seq.seq H32.t -> Seq.seq FStar.UInt32.t
+
+
 val update:
   state :uint32_p {length state = v size_state} ->
   data  :uint8_p  {length data = v size_block /\ disjoint state data} ->
@@ -99,7 +103,7 @@ val update:
                   /\ (let seq_k = Seq.slice (as_seq h0 state) (U32.v pos_k_w) (U32.(v pos_k_w + v size_k_w)) in
                   let seq_counter = Seq.slice (as_seq h0 state) (U32.v pos_count_w) (U32.(v pos_count_w + v size_count_w)) in
                   let counter = Seq.index seq_counter 0 in
-                  seq_k == Spec.k /\ H32.v counter < (pow2 32 - 1))))
+                  (classify_seq seq_k) == Spec.k /\ H32.v counter < (pow2 32 - 1))))
         (ensures  (fun h0 r h1 -> live h0 state /\ live h0 data /\ live h1 state /\ modifies_1 state h0 h1
                   /\ (let seq_hash_0 = Seq.slice (as_seq h0 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
                   let seq_hash_1 = Seq.slice (as_seq h1 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
@@ -112,7 +116,7 @@ val update:
                   let counter_1 = Seq.index seq_counter_1 0 in
                   seq_k_0 == seq_k_1
                   /\ H32.v counter_1 = H32.v counter_0 + 1 /\ H32.v counter_1 < pow2 32
-                  /\ seq_hash_1 == Spec.update seq_hash_0 seq_block)))
+                  /\ (classify_seq seq_hash_1) == Spec.update (declassify_seq seq_hash_0) seq_block)))
 
 let update state data_8 = Hash.update state data_8
 
@@ -128,7 +132,7 @@ val update_multi:
                   /\ (let seq_k = Seq.slice (as_seq h0 state) (U32.v pos_k_w) (U32.(v pos_k_w + v size_k_w)) in
                   let seq_counter = Seq.slice (as_seq h0 state) (U32.v pos_count_w) (U32.(v pos_count_w + v size_count_w)) in
                   let counter = Seq.index seq_counter 0 in
-                  seq_k == Spec.k /\ H32.v counter < (pow2 32 - (v n)))))
+                  (classify_seq seq_k) == Spec.k /\ H32.v counter < (pow2 32 - (v n)))))
         (ensures  (fun h0 _ h1 -> live h0 state /\ live h0 data /\ live h1 state /\ modifies_1 state h0 h1
                   /\ (let seq_hash_0 = Seq.slice (as_seq h0 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
                   let seq_hash_1 = Seq.slice (as_seq h1 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
@@ -141,7 +145,7 @@ val update_multi:
                   let counter_1 = Seq.index seq_counter_1 0 in
                   seq_k_0 == seq_k_1
                   /\ H32.v counter_1 = H32.v counter_0 + (v n) /\ H32.v counter_1 < pow2 32
-                  /\ seq_hash_1 == Spec.update_multi seq_hash_0 seq_blocks)))
+                  /\ (classify_seq seq_hash_1) == Spec.update_multi (declassify_seq seq_hash_0) seq_blocks)))
 
 let update_multi state data n = Hash.update_multi state data n
 
@@ -158,14 +162,14 @@ val update_last:
                   let seq_counter = Seq.slice (as_seq h0 state) (U32.v pos_count_w) (U32.(v pos_count_w + v size_count_w)) in
                   let counter = Seq.index seq_counter 0 in
                   let nb = U32.div len size_block in
-                  seq_k == Spec.k /\ H32.v counter < (pow2 32 - 2))))
+                  (classify_seq seq_k) == Spec.k /\ H32.v counter < (pow2 32 - 2))))
         (ensures  (fun h0 r h1 -> live h0 state /\ live h0 data /\ live h1 state /\ modifies_1 state h0 h1
                   /\ (let seq_hash_0 = Seq.slice (as_seq h0 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
                   let seq_hash_1 = Seq.slice (as_seq h1 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
                   let seq_data = as_seq h0 data in
                   let count = Seq.slice (as_seq h0 state) (U32.v pos_count_w) (U32.v pos_count_w + 1) in
-                  let prevlen = U32.(v (Seq.index count 0) * (v size_block)) in
-                  seq_hash_1 == Spec.update_last seq_hash_0 prevlen seq_data)))
+                  let prevlen = U32.(H32.v (Seq.index count 0) * (v size_block)) in
+                  (classify_seq seq_hash_1) == Spec.update_last (declassify_seq seq_hash_0) prevlen seq_data)))
 
 let update_last state data len = Hash.update_last state data len
 
@@ -180,7 +184,7 @@ val finish:
         (ensures  (fun h0 _ h1 -> live h0 state /\ live h1 hash /\ modifies_1 hash h0 h1
                   /\ (let seq_hash_w = Seq.slice (as_seq h0 state) (U32.v pos_whash_w) (U32.(v pos_whash_w + v size_whash_w)) in
                   let seq_hash = as_seq h1 hash in
-                  seq_hash = Spec.finish seq_hash_w)))
+                  seq_hash = Spec.finish (declassify_seq seq_hash_w))))
 
 let finish state hash = Hash.finish state hash
 
