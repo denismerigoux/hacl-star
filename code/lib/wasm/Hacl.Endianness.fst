@@ -200,7 +200,7 @@ assume val hload64_be:
     (ensures  (fun h0 z h1 -> h0 == h1 /\ live h0 b /\ hbig_endian (as_seq h0 b) = H64.v z))
 
 [@"substitute" ]
-assume val hstore128_le:
+val hstore128_le:
   b:buffer H8.t{length b = 16} ->
   z:H128.t ->
   Stack unit
@@ -208,14 +208,14 @@ assume val hstore128_le:
     (ensures  (fun h0 _ h1 -> modifies_1 b h0 h1 /\ live h1 b /\ hlittle_endian (as_seq h1 b) = H128.v z))
 
 [@"substitute" ]
-assume val hload128_le:
+val hload128_le:
   b:buffer H8.t{length b = 16} ->
   Stack H128.t
     (requires (fun h -> live h b))
     (ensures  (fun h0 z h1 -> h0 == h1 /\ live h0 b /\ hlittle_endian (as_seq h0 b) = H128.v z))
 
 [@"substitute" ]
-assume val hstore128_be:
+val hstore128_be:
   b:buffer H8.t{length b = 16} ->
   z:H128.t ->
   Stack unit
@@ -223,7 +223,7 @@ assume val hstore128_be:
     (ensures  (fun h0 _ h1 -> modifies_1 b h0 h1 /\ live h1 b /\ hbig_endian (as_seq h1 b) = H128.v z))
 
 [@"substitute" ]
-assume val hload128_be:
+val hload128_be:
   b:buffer H8.t{length b = 16} ->
   Stack H128.t
     (requires (fun h -> live h b))
@@ -251,6 +251,10 @@ let store64_be b z  = store64_be b z
 let store128_le b z = store128_le b z
 [@"substitute" ]
 let store128_be b z = store128_be b z
+[@"substitute" ]
+let hstore128_le b z = store128_le b z
+[@"substitute" ]
+let hstore128_be b z = store128_be b z
 
 
 [@"substitute" ]
@@ -265,3 +269,7 @@ let load64_be b  = load64_be b
 let load128_le b = load128_le b
 [@"substitute" ]
 let load128_be b = load128_be b
+[@"substitute" ]
+let hload128_le b = load128_le b
+[@"substitute" ]
+let hload128_be b = load128_be b

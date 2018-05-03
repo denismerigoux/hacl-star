@@ -29,19 +29,23 @@ assume val sint128_to_sint64: a:S128.t -> Tot (b:S64.t{S64.v b = S128.v a % pow2
 assume val sint128_to_sint32: a:S128.t -> Tot (b:S32.t{S32.v b = S128.v a % pow2 32})
 assume val sint128_to_sint8 : a:S128.t -> Tot (b:S8.t{S8.v b = S128.v a % pow2 8})
 
-assume val uint64_to_sint128: a:U64.t -> Tot (b:S128.t{S128.v b = U64.v a})
+inline_for_extraction val uint64_to_sint128: a:U64.t -> Tot (b:S128.t{S128.v b = U64.v a})
+inline_for_extraction let uint64_to_sint128 a = FStar.Int.Cast.Full.uint64_to_uint128 a
 assume val uint64_to_sint64: a:U64.t -> Tot (b:S64.t{S64.v b = U64.v a})
 assume val uint64_to_sint32: a:U64.t -> Tot (b:S32.t{S32.v b = U64.v a % pow2 32})
 assume val uint64_to_sint8: a:U64.t -> Tot (b:S8.t{S8.v b = U64.v a % pow2 8})
 
-assume val uint32_to_sint128: a:U32.t -> Tot (b:S128.t{S128.v b = U32.v a})
+inline_for_extraction val uint32_to_sint128: a:U32.t -> Tot (b:S128.t{S128.v b = U32.v a})
+inline_for_extraction let uint32_to_sint128 a = FStar.Int.Cast.Full.uint64_to_uint128 (FStar.Int.Cast.Full.uint32_to_uint64 a)
 assume val uint32_to_sint64: a:U32.t -> Tot (b:S64.t{S64.v b = U32.v a})
 assume val uint32_to_sint32: a:U32.t -> Tot (b:S32.t{S32.v b = U32.v a})
 assume val uint32_to_sint8: a:U32.t -> Tot (b:S8.t{S8.v b = U32.v a % pow2 8})
 
-assume val uint8_to_sint128: a:U8.t -> Tot (b:S128.t{S128.v b = U8.v a})
+inline_for_extraction val uint8_to_sint128: a:U8.t -> Tot (b:S128.t{S128.v b = U8.v a})
+inline_for_extraction let uint8_to_sint128 a = FStar.Int.Cast.Full.uint64_to_uint128 (FStar.Int.Cast.Full.uint8_to_uint64 a)
 assume val uint8_to_sint64: a:U8.t -> Tot (b:S64.t{S64.v b = U8.v a})
 assume val uint8_to_sint32: a:U8.t -> Tot (b:S32.t{S32.v b = U8.v a})
 assume val uint8_to_sint8: a:U8.t -> Tot (b:S8.t{S8.v b = U8.v a})
 
-assume val uint128_to_sint128: a:U128.t -> Tot (b:S128.t{S128.v b = U128.v a})
+inline_for_extraction val uint128_to_sint128: a:U128.t -> Tot (b:S128.t{S128.v b = U128.v a})
+inline_for_extraction let uint128_to_sint128 a = a

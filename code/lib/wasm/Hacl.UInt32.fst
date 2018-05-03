@@ -53,7 +53,7 @@ assume val lte_mask: a:t -> b:t -> Tot (c:t{(v a <= v b ==> v c = pow2 n - 1) /\
 
 (* Infix notations *)
 let op_Plus_Hat a b = add a b
-let op_Plus_Percent_Hat a b = add_mod a b
+let op_Plus_Percent_Hat a b  = add_mod a b
 let op_Subtraction_Hat a b = sub a b
 let op_Subtraction_Percent_Hat a b = sub_mod a b
 let op_Star_Hat a b = mul a b

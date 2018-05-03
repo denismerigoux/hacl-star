@@ -7,72 +7,110 @@ open FStar.HyperStack.All
 
 open FStar.UInt128
 module U = FStar.UInt128
+
+let n = 128
 open FStar.Mul
+
+assume val declassify_uint64 : a:Hacl.UInt64.t -> Tot (b:FStar.UInt64.t{Hacl.UInt64.v a = FStar.UInt64.v b})
+
 
 (* NOTE: anything that you fix/update here should be reflected in [Hacl.IntN.fstp], which is mostly
  * a copy-paste of this module. *)
 
-let n = U.n
+type t = U.t
 
-assume new type t
+inline_for_extraction let v (x:t) : GTot (FStar.UInt.uint_t n) = U.v x
 
-assume val v (x:t) : GTot (FStar.UInt.uint_t n)
+inline_for_extraction val add: a:t -> b:t{UInt.size (v a + v b) n} -> Tot (c:t{v a + v b = v c})
+inline_for_extraction let add a b = add a b
 
-assume val add: a:t -> b:t{UInt.size (v a + v b) n} -> Tot (c:t{v a + v b = v c})
-
-assume val add_mod: a:t -> b:t -> Tot (c:t{(v a + v b) % pow2 n = v c})
+inline_for_extraction val add_mod: a:t -> b:t -> Tot (c:t{(v a + v b) % pow2 n = v c})
+inline_for_extraction let add_mod a b = add_mod a b
 
 (* Subtraction primitives *)
-assume val sub: a:t -> b:t{UInt.size (v a - v b) n} -> Tot (c:t{UInt.size (v a - v b) n})
+inline_for_extraction val sub: a:t -> b:t{(UInt.size (v a - v b) n)} -> Tot (c:t{v a - v b = v c})
+inline_for_extraction let sub a b = sub a b
 
-assume val sub_mod: a:t -> b:t -> Tot (c:t{(v a - v b) % pow2 n = v c})
-
-(* (\* Multiplication primitives *\) *)
-(* val mul: a:t -> b:t{UInt.size (v a * v b) n} -> Tot (c:t{v a * v b = v c}) *)
-(* let mul a b = *)
-(*   Mk (mul (a.v) (b.v)) *)
-
-(* val mul_mod: a:t -> b:t -> Tot (c:t{(v a * v b) % pow2 n = v c}) *)
-(* let mul_mod a b = *)
-(*   Mk (mul_mod (a.v) (b.v)) *)
+inline_for_extraction val sub_mod: a:t -> b:t -> Tot (c:t{(v a - v b) % pow2 n = v c})
+inline_for_extraction let sub_mod a b = sub_mod a b
 
 (* Bitwise operators *)
-assume val logand: t -> t -> Tot t
-assume val logxor: t -> t -> Tot t
-assume val logor: t -> t -> Tot t
-assume val lognot: t -> Tot t
+inline_for_extraction val logand: t -> t -> Tot t
+inline_for_extraction let logand a b = logand a b
+inline_for_extraction val logxor: t -> t -> Tot t
+inline_for_extraction let logxor a b = logxor a b
+inline_for_extraction val logor: t -> t -> Tot t
+inline_for_extraction let logor a b = logor a b
+inline_for_extraction val lognot: t -> Tot t
+inline_for_extraction let lognot a = lognot a
 
 (* Shift operators *)
-assume val shift_right: a:t -> s:FStar.UInt32.t{FStar.UInt32.v s < n}
-  -> Tot (c:t{v c = (v a / (pow2 (FStar.UInt32.v s)))})
+inline_for_extraction val shift_right: a:t -> s:FStar.UInt32.t{FStar.UInt32.v s < n} ->
+  Tot (c:t{v c = (v a / (pow2 (FStar.UInt32.v s)))})
+inline_for_extraction let shift_right a s = shift_right a s
 
-assume val shift_left: a:t -> s:FStar.UInt32.t{FStar.UInt32.v s < n}
-  -> Tot (c:t{v c = ((v a * pow2 (FStar.UInt32.v s)) % pow2 n)})
+inline_for_extraction val shift_left: a:t -> s:FStar.UInt32.t{FStar.UInt32.v s < n} ->
+  Tot (c:t{v c = ((v a * pow2 (FStar.UInt32.v s)) % pow2 n)})
+inline_for_extraction let shift_left a s = shift_left a s
 
-assume val eq_mask: a:t -> b:t -> Tot (c:t{(v a = v b ==> v c = pow2 n - 1) /\ (v a <> v b ==> v c = 0)})
-assume val gte_mask: a:t -> b:t -> Tot (c:t{(v a >= v b ==> v c = pow2 n - 1) /\ (v a < v b ==> v c = 0)})
-assume val gt_mask: a:t -> b:t -> Tot (c:t{(v a > v b ==> v c = pow2 n - 1) /\ (v a <= v b ==> v c = 0)})
-assume val lt_mask: a:t -> b:t -> Tot (c:t{(v a < v b ==> v c = pow2 n - 1) /\ (v a >= v b ==> v c = 0)})
-assume val lte_mask: a:t -> b:t -> Tot (c:t{(v a <= v b ==> v c = pow2 n - 1) /\ (v a > v b ==> v c = 0)})
+inline_for_extraction val eq_mask: a:t -> b:t -> Tot (c:t{(v a = v b ==> v c = pow2 n - 1) /\ (v a <> v b ==> v c = 0)})
+inline_for_extraction let eq_mask a b = eq_mask a b
+inline_for_extraction val gte_mask: a:t -> b:t -> Tot (c:t{(v a >= v b ==> v c = pow2 n - 1) /\ (v a < v b ==> v c = 0)})
+inline_for_extraction let gte_mask a b = gte_mask a b
+
+inline_for_extraction val gt_mask: a:t -> b:t -> Tot (c:t{(v a > v b ==> v c = pow2 n - 1) /\ (v a <= v b ==> v c = 0)})
+inline_for_extraction let gt_mask a b =
+  FStar.UInt.lognot_lemma_1 #n;
+  FStar.UInt.(lognot_self (zero n));
+  lognot (gte_mask b a)
+
+inline_for_extraction val lt_mask: a:t -> b:t -> Tot (c:t{(v a < v b ==> v c = pow2 n - 1) /\ (v a >= v b ==> v c = 0)})
+inline_for_extraction let lt_mask a b =
+  FStar.UInt.lognot_lemma_1 #n;
+  FStar.UInt.(lognot_self (zero n));
+  lognot (gte_mask a b)
+
+inline_for_extraction val lte_mask: a:t -> b:t -> Tot (c:t{(v a <= v b ==> v c = pow2 n - 1) /\ (v a > v b ==> v c = 0)})
+inline_for_extraction let lte_mask a b =
+  FStar.UInt.lognot_lemma_1 #n;
+  FStar.UInt.(lognot_self (zero n));
+  lognot (gt_mask a b)
 
 (* Infix notations *)
-let op_Plus_Hat a b = add a b
-let op_Plus_Percent_Hat a b = add_mod a b
-let op_Subtraction_Hat a b = sub a b
-let op_Subtraction_Percent_Hat a b = sub_mod a b
-(* let op_Star_Hat a b = mul a b *)
-(* let op_Star_Percent_Hat a b = mul_mod a b *)
-let op_Hat_Hat a b = logxor a b
-let op_Amp_Hat a b = logand a b
-let op_Bar_Hat a b = logor a b
-let op_Less_Less_Hat a b = shift_left a b
-let op_Greater_Greater_Hat a b = shift_right a b
 
-(* (\* To input / output constants *\) *)
-(* assume val of_string: string -> Tot t *)
+inline_for_extraction val op_Plus_Hat: a:t -> b:t{UInt.size (v a + v b) n} -> Tot (c:t{v a + v b = v c})
+inline_for_extraction let op_Plus_Hat a b = add a b
 
- val mul_wide: a:Hacl.UInt64.t -> b:Hacl.UInt64.t -> Pure t
-  (requires True)
-  (ensures (fun c -> v c = Hacl.UInt64.v a * Hacl.UInt64.v b))
+inline_for_extraction val op_Plus_Percent_Hat: a:t -> b:t -> Tot (c:t{(v a + v b) % pow2 n = v c})
+inline_for_extraction let op_Plus_Percent_Hat a b = add_mod a b
 
-let op_Star_Hat = mul_wide
+inline_for_extraction val op_Subtraction_Hat: a:t -> b:t{(UInt.size (v a - v b) n)} -> Tot (c:t{v a - v b = v c})
+inline_for_extraction let op_Subtraction_Hat a b = sub a b
+
+inline_for_extraction val op_Subtraction_Percent_Hat: a:t -> b:t -> Tot (c:t{(v a - v b) % pow2 n = v c})
+inline_for_extraction let op_Subtraction_Percent_Hat a b = sub_mod a b
+
+inline_for_extraction val op_Amp_Hat: t -> t -> Tot t
+inline_for_extraction let op_Amp_Hat a b = logand a b
+inline_for_extraction val op_Hat_Hat: t -> t -> Tot t
+inline_for_extraction let op_Hat_Hat a b = logxor a b
+inline_for_extraction val op_Bar_Hat: t -> t -> Tot t
+inline_for_extraction let op_Bar_Hat a b = logor a b
+
+(* Shift operators *)
+inline_for_extraction val op_Greater_Greater_Hat: a:t -> s:FStar.UInt32.t{FStar.UInt32.v s < n} ->
+  Tot (c:t{v c = (v a / (pow2 (FStar.UInt32.v s)))})
+inline_for_extraction let op_Greater_Greater_Hat a s = shift_right a s
+
+inline_for_extraction val op_Less_Less_Hat: a:t -> s:FStar.UInt32.t{FStar.UInt32.v s < n} ->
+  Tot (c:t{v c = ((v a * pow2 (FStar.UInt32.v s)) % pow2 n)})
+inline_for_extraction let op_Less_Less_Hat a s = shift_left a s
+
+inline_for_extraction val mul_wide: a:Hacl.UInt64.t -> b:Hacl.UInt64.t -> Tot (c:t{v c = Hacl.UInt64.v a * Hacl.UInt64.v b})
+inline_for_extraction let mul_wide a b = mul_wide (declassify_uint64 a) (declassify_uint64 b)
+
+inline_for_extraction val op_Star_Hat: a:Hacl.UInt64.t -> b:Hacl.UInt64.t -> Tot (c:t{v c = Hacl.UInt64.v a * Hacl.UInt64.v b})
+inline_for_extraction let op_Star_Hat a b = mul_wide a b
+
+(* To input / output constants *)
+assume val of_string: string -> Tot t
